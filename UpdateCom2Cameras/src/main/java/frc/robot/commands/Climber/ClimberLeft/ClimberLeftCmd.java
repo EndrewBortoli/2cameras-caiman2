@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.JacLib.JoystickOI;
 import frc.robot.Constants.*;
 import frc.robot.subsystems.Climber.ClimberLeftSubsystem;
 
@@ -14,7 +15,7 @@ private final ClimberLeftSubsystem climberSubsystem;
 private final PIDController pidController;
 private final Supplier<Double> setpointFunction;
 private static double ClimberSetpoint;
-public final Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
+public final Joystick m_driverController = new Joystick(JoystickOI.kDriverControllerPort);
 
 public ClimberLeftCmd(ClimberLeftSubsystem climberSubsystem, Supplier<Double> setpointFunction) {
   this.setpointFunction = setpointFunction;
@@ -37,9 +38,9 @@ public ClimberLeftCmd(ClimberLeftSubsystem climberSubsystem, Supplier<Double> se
   @Override
   public void execute() {
     ClimberSetpoint = setpointFunction.get();
-  if(m_driverController.getRawButton(OIConstants.LB)){
+  if(m_driverController.getRawButton(JoystickOI.LB)){
     ClimberConstants.kLeftClimberSetpoint -=2.4;}
-  if(m_driverController.getRawButton(OIConstants.RT)){
+  if(m_driverController.getRawButton(JoystickOI.RT)){
     ClimberConstants.kLeftClimberSetpoint  +=1.6;}
 
     pidController.setSetpoint(ClimberSetpoint);

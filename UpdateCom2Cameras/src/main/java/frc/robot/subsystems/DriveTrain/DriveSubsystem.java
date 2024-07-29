@@ -22,6 +22,7 @@ import com.revrobotics.SparkAbsoluteEncoder.Type;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -37,56 +38,65 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.JacLib.utils.PhotonLL;
+import frc.JacLib.utils.SwerveUtils;
 import frc.robot.RobotContainer;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleChangeSetpointCmd;
 import frc.robot.commands.Elevator.Move.ElevatorMoveChangeSetpointCmd;
 import frc.robot.commands.launcherjoint.ChangeSetpointLauncherCmd;
+import frc.robot.subsystems.vision.PoseEstimatorSubsystem;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.PositionConstants;
-import frc.robot.subsystems.vision.PhotonLL;
-import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.JacLib.JoystickOI;
 
 public class DriveSubsystem extends SubsystemBase {
+
+  private static DriveSubsystem instance;
+
+  public static DriveSubsystem getInstance(){
+  if(instance == null){
+    instance = new DriveSubsystem();
+  }
+  return instance;
+  }
   
   // Create MAXSwerveModules
-  public final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
+  public final static MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftChassisAngularOffset,
       true);
 
-   public final MAXSwerveModule m_frontRight = new MAXSwerveModule(
+  public final static MAXSwerveModule m_frontRight = new MAXSwerveModule(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightChassisAngularOffset,
       false);
 
-   public final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
+  public final static MAXSwerveModule m_rearLeft = new MAXSwerveModule(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kBackLeftChassisAngularOffset,
       true);
 
-   public final MAXSwerveModule m_rearRight = new MAXSwerveModule(
+  public final static MAXSwerveModule m_rearRight = new MAXSwerveModule(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kBackRightChassisAngularOffset,
       true);
 
         //Variaveis criadas para serem usadas no método autoAlign();
-      public PhotonLL limelight;
+  public PoseEstimatorSubsystem poseEstimation;
 
 
   // The gyro sensor
-  final static Pigeon2 m_gyro = new Pigeon2(8);
+  public final static Pigeon2 m_gyro = new Pigeon2(8);
 
-    private Field2d field = new Field2d();
 
 
   // Slew rate filter variables for controlling lateral acceleration
@@ -97,46 +107,11 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
-  private final SwerveDrivePoseEstimator poseEstimator;
-
-
-    /**
-     * The standard deviations of the estimated pose from {@link #getEstimatedGlobalPose()}, for use
-     * with {@link edu.wpi.first.math.estimator.SwerveDrivePoseEstimator SwerveDrivePoseEstimator}.
-     * This should only be used when there are targets visible.
-     *
-     * @param estimatedPose The estimated pose to guess standard deviations for.
-     */
-
 
     public Boolean vision = false;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-
-    this.limelight = PhotonLL.getInstance();
-    
-                // Define the standard deviations for the pose estimator, which determine how fast the pose
-        // estimate converges to the vision measurement. This should depend on the vision measurement
-        // noise
-        // and how many or how frequently vision measurements are applied to the pose estimator.
-        var stateStdDevs = VecBuilder.fill(0.1, 0.1, 0.1);
-        var visionStdDevs = VecBuilder.fill(1, 1, 1);
-        poseEstimator =
-                new SwerveDrivePoseEstimator(
-                        DriveConstants.kDriveKinematics,
-                        m_gyro.getRotation2d(),
-                        getModulePositions(),
-                        new Pose2d(),
-                        stateStdDevs,
-                        visionStdDevs);
-                        
-            // Set up custom logging to add the current path to a field 2d widget
-    PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
-
-
-    SmartDashboard.putData("Field", field);
-
 
               //autobuilder needs to be configured last, add anything before this
           AutoBuilder.configureHolonomic(
@@ -174,94 +149,11 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
-    poseEstimator.update(m_gyro.getRotation2d(), getModulePositions());
 
-            // Correct pose estimate with vision measurements
-            var visionEst = limelight.getEstimatedGlobalPose();
-            visionEst.ifPresent(
-                    est -> {
-                        var estPose = est.estimatedPose.toPose2d();
-                        // Change our trust in the measurement based on the tags we can see
-                        var estStdDevs = limelight.getEstimationStdDevs(estPose);
-    
-                        addVisionMeasurement(
-                                est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-                    });
     
 
-    // Update the odometry in the periodic block
-    // m_odometry.update(
-    //     Rotation2d.fromDegrees(m_gyro.getRotation2d().getDegrees()),
-    //     new SwerveModulePosition[] {
-    //         m_frontLeft.getPosition(),
-    //         m_frontRight.getPosition(),
-    //         m_rearLeft.getPosition(),
-    //         m_rearRight.getPosition()
-    //     });
-
-    SmartDashboard.putNumber("RotationSpeed", MAXSwerveModule.m_turningSparkMax.getAbsoluteEncoder(Type.kDutyCycle).getPosition());     
-
-    field.setRobotPose(getPose());
-
   }
 
-  public void frontLeft() {
-   m_frontLeft.getPosition(); 
-  }
-
-  public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
-  }
-
-      /** See {@link SwerveDrivePoseEstimator#addVisionMeasurement(Pose2d, double)}. */
-      public void addVisionMeasurement(Pose2d visionMeasurement, double timestampSeconds) {
-        poseEstimator.addVisionMeasurement(visionMeasurement, timestampSeconds);
-    }
-
-    /** See {@link SwerveDrivePoseEstimator#addVisionMeasurement(Pose2d, double, Matrix)}. */
-    public void addVisionMeasurement(
-            Pose2d visionMeasurement, double timestampSeconds, Matrix<N3, N1> stdDevs) {
-        poseEstimator.addVisionMeasurement(visionMeasurement, timestampSeconds, stdDevs);
-    }
-
-    /**
-     * Reset the estimated pose of the swerve drive on the field.
-     *
-     * @param pose New robot pose.
-     */
-    public void resetPose(Pose2d pose) {
-
-
-        poseEstimator.resetPosition(m_gyro.getRotation2d(), getModulePositions(), pose);
-    }
-
-
-
-  /**
-   * Returns the currently-estimated pose of the robot.
-   *
-   * @return The pose.
-   */
-  // public Pose2d getPose() {
-  //   return m_odometry.getPoseMeters();
-  // }
-
-  /**
-   * Resets the odometry to the specified pose.
-   *
-   * @param pose The pose to which to set the odometry.
-   */
-  // public void resetOdometry(Pose2d pose) {
-  //   m_odometry.resetPosition(
-  //        Rotation2d.fromDegrees(m_gyro.getRotation2d().getDegrees()),
-  //       new SwerveModulePosition[] {
-  //           m_frontLeft.getPosition(),
-  //           m_frontRight.getPosition(),
-  //           m_rearLeft.getPosition(),
-  //           m_rearRight.getPosition()
-  //       },
-  //       pose);
-  // }
 
   /**
    * Method to drive the robot using joystick info.
@@ -357,6 +249,19 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
   }
 
+      //Variável para armazenar a pose do robô
+      private Pose2d currentPose = new Pose2d();
+
+      // Método para obter a pose atual do robô
+      public Pose2d getPose() {
+          return currentPose;
+      }
+  
+      // Método para redefinir a pose do robô
+      public void resetPose(Pose2d newPose) {
+          this.currentPose = newPose;
+      }
+  
   /**
    * Sets the swerve ModuleStates.
    *
@@ -411,11 +316,6 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
 
-  // public void RotationalSpeed(){
-  //   double rotationalSpeed = rotation * DriveConstants.kMaxAngularSpeed;
-
-  //   Rotation2d.fromRadians(rotationalSpeed);
-  // }
 
   /**
    * Returns the heading of the robot.
@@ -431,7 +331,7 @@ public class DriveSubsystem extends SubsystemBase {
      * @return Um array de objetos SwerveModulePosition.
      */
 
-    public SwerveModulePosition[] getModulePositions() {
+    public static SwerveModulePosition[] getModulePositions() {
       return new SwerveModulePosition[] {
           m_frontLeft.getPosition(),
           m_frontRight.getPosition(),
@@ -440,46 +340,16 @@ public class DriveSubsystem extends SubsystemBase {
       };
   }
 
-      /**
-     * Retorna um array contendo os estados atuais dos módulos.
-     *
-     * @return Um array de objetos SwerveModuleState.
-     */
-    public SwerveModuleState[] getModuleStates() {
-      return new SwerveModuleState[] {
-          m_frontLeft.getState(),
-          m_frontRight.getState(),
-          m_rearLeft.getState(),
-          m_rearRight.getState()
-      };
-  }
+
 
 public void stop(){
-      ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0, 0, 0);
+    ChassisSpeeds chassisSpeeds = new ChassisSpeeds(0, 0, 0);
     // Set chassis speeds using existing method
     setChassisSpeeds(chassisSpeeds);
 }
 
-  public void goLeft() {
-    double angle = Math.PI / 2.0; // 90 graus em radianos
-
-    m_frontLeft.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-    m_frontRight.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-    m_rearLeft.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-    m_rearRight.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-}
-
-  public void goRight() {
-    double angle = Math.PI / -2.0; // 90 graus em radianos
-
-    m_frontLeft.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-    m_frontRight.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-    m_rearLeft.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-    m_rearRight.setDesiredState(new SwerveModuleState(1, new Rotation2d(angle)));
-}
 
   public void goForward() {
-    double angle = Math.PI / -2.0; // 90 graus em radianos
 
     m_frontLeft.setDesiredState(new SwerveModuleState(1.5, new Rotation2d(0)));
     m_frontRight.setDesiredState(new SwerveModuleState(1.5, new Rotation2d(0)));
@@ -487,21 +357,17 @@ public void stop(){
     m_rearRight.setDesiredState(new SwerveModuleState(1.5, new Rotation2d(0)));
 }
 
-public Rotation2d getGyroscopeRotation() {
+public static Rotation2d getGyroscopeRotation() {
   return m_gyro.getRotation2d();
 
   // We have to invert the angle of the Pigeon so that rotating the robot counter-clockwise makes the angle increase.
   // return Rotation2d.fromDegrees(360.0 - navx.getYaw());
 }
 
-private static DriveSubsystem instance;
 
-public static DriveSubsystem getInstance(){
-  if(instance == null){
-    instance = new DriveSubsystem();
-  }
-  return instance;
-}
+
+
+
 
   
   

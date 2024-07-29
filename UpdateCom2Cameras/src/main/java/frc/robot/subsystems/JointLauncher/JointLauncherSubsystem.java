@@ -8,7 +8,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LauncherConstants;
-import frc.robot.subsystems.vision.LaunchAngle;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -21,7 +20,6 @@ import com.revrobotics.CANSparkLowLevel;
 
 public class JointLauncherSubsystem extends SubsystemBase {
 
-  public LaunchAngle angle;
   public final static CANSparkFlex jointLauncherLeftMotor = new CANSparkFlex((int) LauncherConstants.kLauncherLeftJointMotorId, CANSparkLowLevel.MotorType.kBrushless);
   public final CANSparkFlex jointLauncherRightMotor = new CANSparkFlex((int) LauncherConstants.kLauncherRightJointMotorId, CANSparkLowLevel.MotorType.kBrushless);
  

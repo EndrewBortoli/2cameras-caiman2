@@ -1,7 +1,5 @@
 package frc.robot.commands.DriveSubsystem;
 
-import static frc.robot.Constants.VisionConstants.ROBOT_TO_CAMERA;
-
 import java.util.function.Supplier;
 
 import org.photonvision.PhotonCamera;
@@ -17,6 +15,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.DriveTrain.DriveSubsystem;
 
 public class ChaseTagCommand extends CommandBase {
@@ -89,7 +88,7 @@ public class ChaseTagCommand extends CommandBase {
         lastTarget = target;
         
         // Transform the robot's pose to find the camera's pose
-        var cameraPose = robotPose.transformBy(ROBOT_TO_CAMERA);
+        var cameraPose = robotPose.transformBy(VisionConstants.FrontCamera);
 
         // Trasnform the camera's pose to the target's pose
         var camToTarget = target.getBestCameraToTarget();

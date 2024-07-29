@@ -17,42 +17,9 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import frc.JacLib.JoystickOI;
 
 public final class Constants {
-
-
-
-  public static final class OIConstants {
-
-    // =========================== Driver Joystick ===============================
-    public static final int kOperatorControllerPort = 1;
-    public static final int kDriverControllerPort = 0;
-    public static final double kDriveDeadband = 0.05;
-
-    // public static final int brake = 3; //B
-
-    public static final int LB = 5; //LB
-    public static final int RB = 6; //RB
-
-    public static final int A = 2; //a
-    public static final int X = 1; //x
-    public static final int B = 3; //b
-    public static final int Y = 4; //y
-    public static final int RT = 7; //RT
-    public static final int LT = 8; //LT
-    public static final int START = 10; //y
-    public static final int BACK = 9; //y
-
-    public static final int RIGHT_STICK = 12; //Start
-    public static final int LEFT_STICK = 11; //Start
-
-    public static final int Up = 0; 
-    public static final int Right = 90; 
-    public static final int Down = 180; 
-    public static final int Left = 270; 
-
-  }
-
   
   public static final class DriveConstants {
 
@@ -181,23 +148,23 @@ public final class Constants {
   }
 
   public static final class OperatorConstants {
-    public static final int kLauncherOutput = OIConstants.RT; // Lança a Game Piece
-    public static final int kLauncherInput = OIConstants.LT; // Pega a Game Piece pelo Launcher
-    public static final int kTriggerActive = OIConstants.START; // Pega a Game Piece pelo Launcher
-    public static final int kTriggerAmp = OIConstants.BACK; // Pega a Game Piece pelo Launcher
+    public static final int kLauncherOutput = JoystickOI.RT; // Lança a Game Piece
+    public static final int kLauncherInput = JoystickOI.LT; // Pega a Game Piece pelo Launcher
+    public static final int kTriggerActive = JoystickOI.START; // Pega a Game Piece pelo Launcher
+    public static final int kTriggerAmp = JoystickOI.BACK; // Pega a Game Piece pelo Launcher
 
-    public static final int kElevatorMoveUp = OIConstants.START;
-    public static final int kElevatorMoveDown = OIConstants.BACK;
+    public static final int kElevatorMoveUp = JoystickOI.START;
+    public static final int kElevatorMoveDown = JoystickOI.BACK;
 
     //     // ===== ELEVATOR ANGLE =====   
-    public static final int kElevatorAngleUp = OIConstants.X;
-    public static final int kElevatorAngleDown = OIConstants.B;
+    public static final int kElevatorAngleUp = JoystickOI.X;
+    public static final int kElevatorAngleDown = JoystickOI.B;
 
-    public static final int kHome = OIConstants.Y;
-    public static final int kFloorIntake = OIConstants.Down;
-    public static final int kSubwoofer = OIConstants.Up;
-    public static final int kAmp = OIConstants.Left;
-    public static final int kPodium = OIConstants.Right;
+    public static final int kHome = JoystickOI.Y;
+    public static final int kFloorIntake = JoystickOI.Down;
+    public static final int kSubwoofer = JoystickOI.Up;
+    public static final int kAmp = JoystickOI.Left;
+    public static final int kPodium = JoystickOI.Right;
 
   }
 
@@ -302,24 +269,49 @@ public final class Constants {
     }
 
         public static class Vision {
-        // Cam mounted facing forward, half a meter forward of center, half a meter up from center.
-        public static final Transform3d kRobotToCam =
-                new Transform3d(new Translation3d(0.325, 0.300, 0.16), new Rotation3d(325, 0, 0));
 
         // The layout of the AprilTags on the field
         public static final AprilTagFieldLayout kTagLayout =
                 AprilTagFields.kDefaultField.loadAprilTagLayoutField();
 
-        // The standard deviations of our vision estimated poses, which affect correction rate
-        // (Fake values. Experiment and determine estimation noise on an actual robot.)
-        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
-        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
     }
 
     public class VisionConstants{
-      public static final Transform3d CAMERA_TO_ROBOT =
-    new Transform3d(new Translation3d(-0.3425, 0.0, -0.233), new Rotation3d());
-public static final Transform3d ROBOT_TO_CAMERA = CAMERA_TO_ROBOT.inverse();
+
+      public static boolean USE_VISION = true;
+
+        public static final double APRILTAG_AMBIGUITY_THRESHOLD = 0.2;
+        public static final double POSE_AMBIGUITY_SHIFTER = 0.2;
+        public static final double POSE_AMBIGUITY_MULTIPLIER = 4;
+        public static final double NOISY_DISTANCE_METERS = 2.5;
+        public static final double DISTANCE_WEIGHT = 7;
+        public static final int TAG_PRESENCE_WEIGHT = 10;
+
+        // Cam mounted facing forward, half a meter forward of center, half a meter up from center.
+        public static final Transform3d FrontCamera = new Transform3d(new Translation3d(0.325, 0.300, 0.16), new Rotation3d(325, 0, 0));
+        public static final Transform3d SideLeftCamera = new Transform3d(
+          new Translation3d(-0.315, 0.300, 0.160), // Posição: -315 mm, 300 mm, 160 mm
+          new Rotation3d(
+              Math.toRadians(0),   // Roll: 0 graus
+              Math.toRadians(30),  // Pitch: 30 graus
+              Math.toRadians(-90)  // Yaw: -90 graus
+          )
+      );
+
+             /**
+        * Standard deviations of model states. Increase these numbers to trust your
+        * model's state estimates less. This matrix is in the form [x, y, theta]ᵀ,
+        * with units in meters and radians, then meters.
+      */
+
+       public static final Matrix<N3, N1> STATE_STANDARD_DEVIATIONS = VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5));
+      /**
+        * Standard deviations of the vision measurements. Increase these numbers to
+        * trust global measurements from vision less. This matrix is in the form
+        * [x, y, theta]ᵀ, with units in meters and radians.
+      */
+       public static final Matrix<N3, N1> VISION_MEASUREMENT_STANDARD_DEVIATIONS = VecBuilder.fill(0.1, 0.1, Units.degreesToRadians(10));
+
 }
   
   }

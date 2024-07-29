@@ -1,7 +1,6 @@
 package frc.robot.commands.launcherjoint;
    
 import frc.robot.subsystems.JointLauncher.JointLauncherSubsystem;
-import frc.robot.subsystems.vision.PhotonLL;
 
 import java.util.function.Supplier;
 
@@ -13,6 +12,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.JacLib.JoystickOI;
+import frc.JacLib.utils.PhotonLL;
 import frc.robot.Constants.*;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleChangeSetpointCmd;
 
@@ -24,7 +25,7 @@ private final PIDController pidController;
 private final Supplier<Double> setpointFunction;
 private static double jointLauncherSetpoint;
 
-public final Joystick m_operatorController = new Joystick(OIConstants.kOperatorControllerPort);
+public final Joystick m_operatorController = new Joystick(JoystickOI.kOperatorControllerPort);
 
   public JointLauncherCommand(JointLauncherSubsystem jointLauncherSubsystem, Supplier<Double> setpointFunction) {
     this.setpointFunction = setpointFunction;
@@ -48,11 +49,11 @@ public final Joystick m_operatorController = new Joystick(OIConstants.kOperatorC
   public void execute() {
   jointLauncherSetpoint = setpointFunction.get();
 
-  if(m_operatorController.getRawButton(OIConstants.LB)){
+  if(m_operatorController.getRawButton(JoystickOI.LB)){
     LauncherConstants.kLauncherJointMotorSetPoint -=0.1;
   }
 
-  if(m_operatorController.getRawButton(OIConstants.RB)){
+  if(m_operatorController.getRawButton(JoystickOI.RB)){
     LauncherConstants.kLauncherJointMotorSetPoint +=0.1;
   }
 

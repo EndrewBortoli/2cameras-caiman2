@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.JacLib.JoystickOI;
 import frc.robot.Constants.*;
 import frc.robot.commands.launcherjoint.ChangeSetpointLauncherCmd;
 import frc.robot.subsystems.Elevator.ElevatorAngleSubsystem;
@@ -16,7 +17,7 @@ private final PIDController pidController;
 private final Supplier<Double> setpointFunction;
 private static double elevatorAngleSetpoint;
 public static boolean kVelocityChange;
-public final Joystick m_operatorController = new Joystick(OIConstants.kOperatorControllerPort);
+public final Joystick m_operatorController = new Joystick(JoystickOI.kOperatorControllerPort);
 // public static final ChangeSetpointLauncherCmd CHANGE_SETPOINT_LAUNCHER_CMD = new ChangeSetpointLauncherCmd( kLaunchingPosition);
 // public int goal;
 

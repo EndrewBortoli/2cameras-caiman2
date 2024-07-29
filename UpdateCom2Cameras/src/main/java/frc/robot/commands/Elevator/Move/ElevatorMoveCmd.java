@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.JacLib.JoystickOI;
 import frc.robot.Constants.*;
 import frc.robot.subsystems.Elevator.ElevatorMoveSubsystem;
 
@@ -14,8 +15,8 @@ private final ElevatorMoveSubsystem elevatorMoveSubsystem;
 private final PIDController pidController;
 private final Supplier<Double> setpointFunction;
 private static double elevatorMoveSetpoint;
-public final Joystick m_operatorController = new Joystick(OIConstants.kOperatorControllerPort);
-public final Joystick m_DriverController = new Joystick(OIConstants.kDriverControllerPort);
+public final Joystick m_operatorController = new Joystick(JoystickOI.kOperatorControllerPort);
+public final Joystick m_DriverController = new Joystick(JoystickOI.kDriverControllerPort);
 
 public ElevatorMoveCmd(ElevatorMoveSubsystem elevatorMoveSubsystem, Supplier<Double> setpointFunction) {
   this.setpointFunction = setpointFunction;
