@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -134,7 +135,7 @@ public class RobotContainer {
 
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).whileTrue(new LauncherCmd(launcherSubsystem, "Launch")); // Lança a GamePiece
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).or(new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp)).onFalse(new LauncherCmd(launcherSubsystem, "Static")); //Se nada pressionado, o Launcher fica parado
-  new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput).whileTrue(new LauncherCmd(launcherSubsystem, "Intake"));  
+  new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput).whileTrue(new InstantCommand(()->new LauncherCmd(launcherSubsystem, "Intake")));  
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger"));
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger Amp"));
   new JoystickButton(m_operatorController, OperatorConstants.kHome).whileTrue( Home() );
