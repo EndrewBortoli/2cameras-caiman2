@@ -1,6 +1,5 @@
 
 package frc.robot;
-import com.fasterxml.jackson.core.sym.Name;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -14,7 +13,6 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -24,10 +22,8 @@ import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.Constants.ClimberConstants;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.LauncherConstants;
-import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.PositionConstants;
-// import frc.robot.auto.sDrive;
 import frc.robot.commands.Climber.ClimberLeft.ClimberLeftChangeSetpoint;
 import frc.robot.commands.Climber.ClimberLeft.ClimberLeftCmd;
 import frc.robot.commands.Climber.ClimberRight.ClimberRightChangeSetpoint;
@@ -36,20 +32,17 @@ import frc.robot.commands.Elevator.Angle.ElevatorAngleChangeSetpointCmd;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleCmd;
 import frc.robot.commands.Elevator.Move.ElevatorMoveChangeSetpointCmd;
 import frc.robot.commands.Elevator.Move.ElevatorMoveCmd;
-import frc.robot.commands.launcher.LaunchAngleCmd;
 import frc.robot.commands.launcher.LauncherCmd;
 import frc.robot.commands.launcherjoint.ChangeSetpointLauncherCmd;
 import frc.robot.commands.launcherjoint.JointLauncherCommand;
 import frc.robot.subsystems.Climber.ClimberLeftSubsystem;
 import frc.robot.subsystems.Climber.ClimberRightSubsystem;
-import frc.robot.subsystems.DriveTrain.DriveSubsystem;
 import frc.robot.subsystems.Elevator.ElevatorAngleSubsystem;
 import frc.robot.subsystems.Elevator.ElevatorMoveSubsystem;
 import frc.robot.subsystems.JointLauncher.JointLauncherSubsystem;
 import frc.robot.subsystems.Launcher.LauncherSubsystem;
 import frc.robot.subsystems.Led.LedSubsystem;
-import frc.robot.subsystems.vision.LaunchAngle;
-import frc.robot.subsystems.vision.LimelightObject;
+import frc.JacLib.JoystickOI;
 
 
  
@@ -65,7 +58,6 @@ public class RobotContainer {
   private final static ElevatorMoveSubsystem elevatorMoveSubsystem = new ElevatorMoveSubsystem();                                              
   private final static ElevatorMoveChangeSetpointCmd elevatorMoveChangeSetpointCmd = new ElevatorMoveChangeSetpointCmd(0);   
   private final static LedSubsystem ledSubsystem = new LedSubsystem();
-  private final static LaunchAngle launchAngle = new LaunchAngle();
   
   ClimberRightSubsystem climberRightSubsystem = new ClimberRightSubsystem();
   ClimberRightCmd climberRightCmd = new ClimberRightCmd(climberRightSubsystem, ()->ClimberConstants.kRightClimberSetpoint); 
@@ -74,8 +66,8 @@ public class RobotContainer {
   ClimberLeftCmd climberLeftCmd = new ClimberLeftCmd(climberLeftSubsystem, ()->ClimberConstants.kLeftClimberSetpoint); 
 
   // Controle do driver
-  Joystick m_operatorController = new Joystick(OIConstants.kOperatorControllerPort);
-  Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
+  Joystick m_operatorController = new Joystick(JoystickOI.kOperatorControllerPort);
+  Joystick m_driverController = new Joystick(JoystickOI.kDriverControllerPort);
 
     SendableChooser<Command> m_chooser = new SendableChooser<>();
 
@@ -104,23 +96,12 @@ public class RobotContainer {
     NamedCommands.registerCommand("floorIntakeOnlyIntake", floorIntakeOnlyIntake());
     NamedCommands.registerCommand("launchingReturn", launchingReturn());
     NamedCommands.registerCommand("SubwooferReturn", SubwooferReturn());
-    NamedCommands.registerCommand("alignNote", alignNote());
 
 
     m_chooser.setDefaultOption("Null", null);
 
     // m_chooser.addOption("sDrive", new sDrive(m_robotDrive));
     m_chooser.addOption("Reto", new PathPlannerAuto("Reto"));
-    m_chooser.addOption("CenterGamePieceAuto", new PathPlannerAuto("CenterGamePieceAuto"));
-    m_chooser.addOption("GoOut", new PathPlannerAuto("GoOut"));
-    m_chooser.addOption("2 Pieces Center Auto", new PathPlannerAuto("2PiecesCenterAuto"));
-    m_chooser.addOption("Amp Side Auto", new PathPlannerAuto("AmpSideAuto"));
-    m_chooser.addOption("PodiumSideAuto", new PathPlannerAuto("PodiumSideAutoSecurity"));
-    m_chooser.addOption("GoingToCenter", new PathPlannerAuto("GoingToCenter"));
-    m_chooser.addOption("3PiecesCenterNoteAndAmpSideNote", new PathPlannerAuto("3PiecesCenterAndAmpSide"));
-    m_chooser.addOption("4PiecesPodiumCenterAmpNotes", new PathPlannerAuto("4PiecesPodiumCenterAmpNotes"));
-    m_chooser.addOption("2PiecesAmpSideAuto", new PathPlannerAuto("2PiecesAmpSideAuto"));
-    m_chooser.addOption("2PiecesPodiumAuto", new PathPlannerAuto("2PiecesPodiumAuto"));
     m_chooser.addOption("WorldChampion", new PathPlannerAuto("WorldChampion"));
   }
 
@@ -136,9 +117,9 @@ public class RobotContainer {
         // Turning is controlled by the X axis of the right stick.
         new RunCommand(
             () -> m_robotDrive.drive(
-                -MathUtil.applyDeadband(m_driverController.getY(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getX(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getZ(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getY(), JoystickOI.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getX(), JoystickOI.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getRawAxis(Joystick.AxisType.kZ.value), JoystickOI.kDriveDeadband),
                 true, true),
             m_robotDrive));
 
@@ -159,19 +140,16 @@ public class RobotContainer {
   new POVButton(m_operatorController, OperatorConstants.kAmp).whileTrue( Amp() );
   new POVButton(m_operatorController, OperatorConstants.kFloorIntake).whileTrue( floorIntake() );
   new POVButton(m_operatorController, OperatorConstants.kPodium).whileTrue( podiumLaunching() );
-  new POVButton(m_operatorController, OIConstants.A).whileTrue( new RunCommand(() -> jointLauncherSubsystem.definePosition(), jointLauncherSubsystem) );
-  new JoystickButton(m_operatorController, OIConstants.LEFT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor("rainbow")));
-  new JoystickButton(m_operatorController, OIConstants.RIGHT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor("green")));
+  new POVButton(m_operatorController, JoystickOI.A).whileTrue( new RunCommand(() -> jointLauncherSubsystem.definePosition(), jointLauncherSubsystem) );
+  new JoystickButton(m_operatorController, JoystickOI.LEFT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor(LedSubsystem.RAINBOW)));
+  new JoystickButton(m_operatorController, JoystickOI.RIGHT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor(LedSubsystem.GREEN)));
 
-  new JoystickButton(m_driverController, OIConstants.LEFT_STICK).whileTrue(new RunCommand(() -> m_robotDrive.goForward(), m_robotDrive)); // GoForward
-  new JoystickButton(m_driverController, OIConstants.Left).whileTrue(new RunCommand(() -> m_robotDrive.goLeft(), m_robotDrive)); // Crangueijo direita
-  new JoystickButton(m_driverController, OIConstants.Right).whileTrue(new RunCommand(() -> m_robotDrive.goRight(), m_robotDrive));  // Carangueijo esquerda
-  new JoystickButton(m_driverController, OIConstants.START).whileTrue(new RunCommand(() -> m_robotDrive.zeroHeading(), m_robotDrive)); // Zerar o angulo do robô
-  new JoystickButton(m_driverController, OIConstants.Y).whileTrue(new RunCommand(() -> m_robotDrive.autoAlignRight(), m_robotDrive)); // Se alinhar pelo Tx
-  new JoystickButton(m_driverController, OIConstants.B).whileTrue(new RunCommand(() -> m_robotDrive.autoAlignLeft(), m_robotDrive)); // Se alinhar pelo Tx
-  new JoystickButton(m_driverController, OIConstants.X).whileTrue(new RunCommand(() -> m_robotDrive.autoAlignNote(), m_robotDrive)); // Se alinhar por tudo
+  new JoystickButton(m_driverController, JoystickOI.LEFT_STICK).whileTrue(new RunCommand(() -> m_robotDrive.goForward(), m_robotDrive)); // GoForward
+  // new JoystickButton(m_driverController, JoystickOI.Left).whileTrue(new RunCommand(() -> m_robotDrive.goLeft(), m_robotDrive)); // Crangueijo direita
+  // new JoystickButton(m_driverController, JoystickOI.Right).whileTrue(new RunCommand(() -> m_robotDrive.goRight(), m_robotDrive));  // Carangueijo esquerda
+  new JoystickButton(m_driverController, JoystickOI.START).whileTrue(new RunCommand(() -> m_robotDrive.zeroHeading(), m_robotDrive)); // Zerar o angulo do robô
   
-  new JoystickButton(m_driverController, OIConstants.RIGHT_STICK).whileTrue(            
+  new JoystickButton(m_driverController, JoystickOI.RIGHT_STICK).whileTrue(            
     AutoBuilder.pathfindToPose(
     new Pose2d(14.21, 5.52, Rotation2d.fromDegrees(0)), 
     new PathConstraints(
@@ -296,24 +274,7 @@ public class RobotContainer {
 
   private Command floorIntakeOnlyIntake() {
       return new LauncherCmd(launcherSubsystem, "Launch");
- }
-
-  private Command climberHome() {
-     return new ParallelCommandGroup(
-      new ClimberLeftChangeSetpoint(0),
-      new ClimberRightChangeSetpoint(0)
-    );
- }
-  private Command climberMaxUp() {
-     return new ParallelCommandGroup(
-      new ClimberLeftChangeSetpoint(0),
-      new ClimberRightChangeSetpoint(0)
-    );
- }
- 
-private Command alignNote() {
-  return new RunCommand(() -> m_robotDrive.autoAlignNote(), m_robotDrive);
-}
+ } 
 
  public Command getAutonomousCommand() {
   return m_chooser.getSelected();
