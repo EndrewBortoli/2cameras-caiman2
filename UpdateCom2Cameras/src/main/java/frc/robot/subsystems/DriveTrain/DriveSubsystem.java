@@ -64,7 +64,7 @@ public class DriveSubsystem extends SubsystemBase {
 
 
   // The gyro sensor
-  public final static Pigeon2 m_gyro = new Pigeon2(8);
+  public final Pigeon2 m_gyro = new Pigeon2(8);
 
 
 
@@ -300,7 +300,7 @@ public class DriveSubsystem extends SubsystemBase {
      * @return Um array de objetos SwerveModulePosition.
      */
 
-    public static SwerveModulePosition[] getModulePositions() {
+    public SwerveModulePosition[] getModulePositions() {
       return new SwerveModulePosition[] {
           m_frontLeft.getPosition(),
           m_frontRight.getPosition(),
@@ -326,7 +326,7 @@ public void stop(){
     m_rearRight.setDesiredState(new SwerveModuleState(1.5, new Rotation2d(0)));
 }
 
-public static Rotation2d getGyroscopeRotation() {
+public Rotation2d getGyroscopeRotation() {
   return m_gyro.getRotation2d();
 
   // We have to invert the angle of the Pigeon so that rotating the robot counter-clockwise makes the angle increase.
