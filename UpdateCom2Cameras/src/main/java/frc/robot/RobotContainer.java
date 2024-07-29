@@ -68,8 +68,11 @@ public class RobotContainer {
   ClimberLeftSubsystem climberLeftSubsystem = new ClimberLeftSubsystem();
   ClimberLeftCmd climberLeftCmd = new ClimberLeftCmd(climberLeftSubsystem, ()->ClimberConstants.kLeftClimberSetpoint); 
 
-    private final PoseEstimatorSubsystem poseEstimator = new PoseEstimatorSubsystem(
-      DriveSubsystem.m_gyro.getRotation2d(), DriveSubsystem.getModulePositions());
+  private final PoseEstimatorSubsystem poseEstimator = new PoseEstimatorSubsystem(
+    () -> m_robotDrive.m_gyro.getRotation2d(), 
+    () -> m_robotDrive.getModulePositions()
+);
+
 
 
   // Controle do driver
@@ -111,7 +114,7 @@ public class RobotContainer {
     m_chooser.addOption("Reto", new PathPlannerAuto("Reto"));
     m_chooser.addOption("WorldChampion", new PathPlannerAuto("WorldChampion"));
 
-    configureDashboard();
+        configureDashboard();
 
   }
 
