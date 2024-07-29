@@ -105,7 +105,7 @@ public class RobotContainer {
     m_chooser.addOption("Reto", new PathPlannerAuto("Reto"));
     m_chooser.addOption("WorldChampion", new PathPlannerAuto("WorldChampion"));
 
-        configureDashboard();
+    configureDashboard();
 
   }
 
@@ -127,12 +127,6 @@ public class RobotContainer {
                 true, true),
             m_robotDrive));
 
-    // new JoystickButton(m_driverController, Joystick.AxisType.kZ.value)
-    // .whileTrue(new RunCommand(() -> {
-    //   double rotation = m_driverController.getRawAxis(Joystick.AxisType.kZ.value);
-    //   m_robotDrive.rotate(rotation);
-    // }, m_robotDrive));
-
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).whileTrue(new LauncherCmd(launcherSubsystem, "Launch")); // Lança a GamePiece
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).or(new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp)).onFalse(new LauncherCmd(launcherSubsystem, "Static")); //Se nada pressionado, o Launcher fica parado
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput).whileTrue(new InstantCommand(()->new LauncherCmd(launcherSubsystem, "Intake")));  
@@ -140,7 +134,7 @@ public class RobotContainer {
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger Amp"));
   new JoystickButton(m_operatorController, OperatorConstants.kHome).whileTrue( Home() );
   // new POVButton(m_operatorController, OperatorConstants.kFloorIntake).whileTrue( floorIntake() );
-  new POVButton(m_operatorController, OperatorConstants.kSubwoofer).whileTrue( Subwoofer() );
+  new POVButton(m_operatorController, OperatorConstants.kSubwoofer).whileTrue( Subwoofer());
   new POVButton(m_operatorController, OperatorConstants.kAmp).whileTrue( Amp() );
   new POVButton(m_operatorController, OperatorConstants.kFloorIntake).whileTrue( floorIntake() );
   new POVButton(m_operatorController, OperatorConstants.kPodium).whileTrue( podiumLaunching() );

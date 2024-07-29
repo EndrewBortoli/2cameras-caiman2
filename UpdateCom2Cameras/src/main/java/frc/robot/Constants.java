@@ -282,7 +282,7 @@ public final class Constants {
         public static final double APRILTAG_AMBIGUITY_THRESHOLD = 0.2;
         public static final double POSE_AMBIGUITY_SHIFTER = 0.2;
         public static final double POSE_AMBIGUITY_MULTIPLIER = 4;
-        public static final double NOISY_DISTANCE_METERS = 2.5;
+        public static final double NOISY_DISTANCE_METERS = 0.5;
         public static final double DISTANCE_WEIGHT = 7;
         public static final int TAG_PRESENCE_WEIGHT = 10;
 
@@ -293,7 +293,7 @@ public final class Constants {
           new Rotation3d(
               Math.toRadians(0),   // Roll: 0 graus
               Math.toRadians(30),  // Pitch: 30 graus
-              Math.toRadians(-90)  // Yaw: -90 graus
+              Math.toRadians(90)  // Yaw: -90 graus
           )
       );
 
