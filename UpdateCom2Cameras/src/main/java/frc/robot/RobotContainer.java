@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,11 +38,13 @@ import frc.robot.commands.launcherjoint.ChangeSetpointLauncherCmd;
 import frc.robot.commands.launcherjoint.JointLauncherCommand;
 import frc.robot.subsystems.Climber.ClimberLeftSubsystem;
 import frc.robot.subsystems.Climber.ClimberRightSubsystem;
+import frc.robot.subsystems.DriveTrain.DriveSubsystem;
 import frc.robot.subsystems.Elevator.ElevatorAngleSubsystem;
 import frc.robot.subsystems.Elevator.ElevatorMoveSubsystem;
 import frc.robot.subsystems.JointLauncher.JointLauncherSubsystem;
 import frc.robot.subsystems.Launcher.LauncherSubsystem;
 import frc.robot.subsystems.Led.LedSubsystem;
+import frc.robot.subsystems.vision.PoseEstimatorSubsystem;
 import frc.JacLib.JoystickOI;
 
 
@@ -64,6 +67,10 @@ public class RobotContainer {
 
   ClimberLeftSubsystem climberLeftSubsystem = new ClimberLeftSubsystem();
   ClimberLeftCmd climberLeftCmd = new ClimberLeftCmd(climberLeftSubsystem, ()->ClimberConstants.kLeftClimberSetpoint); 
+
+    private final PoseEstimatorSubsystem poseEstimator = new PoseEstimatorSubsystem(
+      DriveSubsystem.m_gyro.getRotation2d(), DriveSubsystem.getModulePositions());
+
 
   // Controle do driver
   Joystick m_operatorController = new Joystick(JoystickOI.kOperatorControllerPort);
@@ -103,6 +110,9 @@ public class RobotContainer {
     // m_chooser.addOption("sDrive", new sDrive(m_robotDrive));
     m_chooser.addOption("Reto", new PathPlannerAuto("Reto"));
     m_chooser.addOption("WorldChampion", new PathPlannerAuto("WorldChampion"));
+
+    configureDashboard();
+
   }
 
   private void configureButtonBindings() {
@@ -123,11 +133,11 @@ public class RobotContainer {
                 true, true),
             m_robotDrive));
 
-    new JoystickButton(m_driverController, Joystick.AxisType.kZ.value)
-    .whileTrue(new RunCommand(() -> {
-      double rotation = m_driverController.getRawAxis(Joystick.AxisType.kZ.value);
-      m_robotDrive.rotate(rotation);
-    }, m_robotDrive));
+    // new JoystickButton(m_driverController, Joystick.AxisType.kZ.value)
+    // .whileTrue(new RunCommand(() -> {
+    //   double rotation = m_driverController.getRawAxis(Joystick.AxisType.kZ.value);
+    //   m_robotDrive.rotate(rotation);
+    // }, m_robotDrive));
 
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).whileTrue(new LauncherCmd(launcherSubsystem, "Launch")); // Lança a GamePiece
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).or(new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp)).onFalse(new LauncherCmd(launcherSubsystem, "Static")); //Se nada pressionado, o Launcher fica parado
@@ -145,22 +155,16 @@ public class RobotContainer {
   new JoystickButton(m_operatorController, JoystickOI.RIGHT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor(LedSubsystem.GREEN)));
 
   new JoystickButton(m_driverController, JoystickOI.LEFT_STICK).whileTrue(new RunCommand(() -> m_robotDrive.goForward(), m_robotDrive)); // GoForward
-  // new JoystickButton(m_driverController, JoystickOI.Left).whileTrue(new RunCommand(() -> m_robotDrive.goLeft(), m_robotDrive)); // Crangueijo direita
-  // new JoystickButton(m_driverController, JoystickOI.Right).whileTrue(new RunCommand(() -> m_robotDrive.goRight(), m_robotDrive));  // Carangueijo esquerda
   new JoystickButton(m_driverController, JoystickOI.START).whileTrue(new RunCommand(() -> m_robotDrive.zeroHeading(), m_robotDrive)); // Zerar o angulo do robô
   
-  new JoystickButton(m_driverController, JoystickOI.RIGHT_STICK).whileTrue(            
-    AutoBuilder.pathfindToPose(
-    new Pose2d(14.21, 5.52, Rotation2d.fromDegrees(0)), 
-    new PathConstraints(
-      5.0, 2.0, 
-      Units.degreesToRadians(360), Units.degreesToRadians(540)
-    ), 
-    0, 
-    2.0
-  ));
-
 }
+
+  private void configureDashboard() {
+    /**** Vision tab ****/
+    final var visionTab = Shuffleboard.getTab("Vision");
+    poseEstimator.addDashboardWidgets(visionTab);
+
+  }
 
  private Command Home() {
      return new SequentialCommandGroup(

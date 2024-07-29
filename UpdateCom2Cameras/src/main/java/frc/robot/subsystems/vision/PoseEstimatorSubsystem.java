@@ -53,7 +53,6 @@ public class PoseEstimatorSubsystem extends SubsystemBase {
     rightEstimator.run();
     leftEstimator.run();
   });
-  // private final Notifier backNotifier = new Notifier(backEstimator);
 
   private OriginPosition originPosition = kBlueAllianceWallRightSide;
 
@@ -82,7 +81,7 @@ public class PoseEstimatorSubsystem extends SubsystemBase {
                         stateStdDevs,
                         visionStdDevs);
 
-        SmartDashboard.putData("Field", field);
+    // SmartDashboard.putData("Field", field);
 
     allNotifier.setName("runAll");
     allNotifier.startPeriodic(0.02);
