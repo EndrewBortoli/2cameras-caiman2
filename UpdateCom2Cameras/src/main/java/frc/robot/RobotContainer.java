@@ -21,6 +21,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.PositionConstants;
 import frc.robot.commands.Climber.ClimberLeft.ClimberLeftCmd;
 import frc.robot.commands.Climber.ClimberRight.ClimberRightCmd;
+import frc.robot.commands.DriveSubsystem.TurnToSpeaker;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleChangeSetpointCmd;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleCmd;
 import frc.robot.commands.Elevator.Move.ElevatorMoveChangeSetpointCmd;
@@ -129,7 +130,7 @@ public class RobotContainer {
 
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).whileTrue(new LauncherCmd(launcherSubsystem, "Launch")); // Lança a GamePiece
   new JoystickButton(m_operatorController, OperatorConstants.kLauncherOutput).or(new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive)).or(new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp)).onFalse(new LauncherCmd(launcherSubsystem, "Static")); //Se nada pressionado, o Launcher fica parado
-  new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput).whileTrue(new InstantCommand(()->new LauncherCmd(launcherSubsystem, "Intake")));  
+  new JoystickButton(m_operatorController, OperatorConstants.kLauncherInput).whileTrue(new LauncherCmd(launcherSubsystem, "Intake"));  
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger"));
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger Amp"));
   new JoystickButton(m_operatorController, OperatorConstants.kHome).whileTrue( Home() );
@@ -145,6 +146,9 @@ public class RobotContainer {
   new JoystickButton(m_driverController, JoystickOI.LEFT_STICK).whileTrue(new RunCommand(() -> m_robotDrive.goForward(), m_robotDrive)); // GoForward
   new JoystickButton(m_driverController, JoystickOI.START).whileTrue(new RunCommand(() -> m_robotDrive.zeroHeading(), m_robotDrive)); // Zerar o angulo do robô
   
+      // Adiciona o comando TurnToSpeaker ao botão B do driver controller
+    new JoystickButton(m_driverController, JoystickOI.B).whileTrue(new TurnToSpeaker(m_robotDrive));
+
 }
 
   private void configureDashboard() {

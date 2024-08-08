@@ -10,5 +10,6 @@ import edu.wpi.first.math.util.Units;
 public class FieldConstants {
     public static final double FIELD_LENGTH_METERS = Units.inchesToMeters(651.25);
     public static final double FIELD_WIDTH_METERS = Units.inchesToMeters(315.5);
-  
+    public static final double SPEAKER_Y = Units.inchesToMeters(219.277);
+
 }
