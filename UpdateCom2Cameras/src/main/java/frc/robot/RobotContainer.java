@@ -21,6 +21,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.PositionConstants;
 import frc.robot.commands.Climber.ClimberLeft.ClimberLeftCmd;
 import frc.robot.commands.Climber.ClimberRight.ClimberRightCmd;
+import frc.robot.commands.DriveSubsystem.AlignToAprilTag;
 import frc.robot.commands.DriveSubsystem.TurnToSpeaker;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleChangeSetpointCmd;
 import frc.robot.commands.Elevator.Angle.ElevatorAngleCmd;
@@ -134,7 +135,6 @@ public class RobotContainer {
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger"));
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger Amp"));
   new JoystickButton(m_operatorController, OperatorConstants.kHome).whileTrue( Home() );
-  // new POVButton(m_operatorController, OperatorConstants.kFloorIntake).whileTrue( floorIntake() );
   new POVButton(m_operatorController, OperatorConstants.kSubwoofer).whileTrue( Subwoofer());
   new POVButton(m_operatorController, OperatorConstants.kAmp).whileTrue( Amp() );
   new POVButton(m_operatorController, OperatorConstants.kFloorIntake).whileTrue( floorIntake() );
@@ -148,6 +148,9 @@ public class RobotContainer {
   
       // Adiciona o comando TurnToSpeaker ao botão B do driver controller
     new JoystickButton(m_driverController, JoystickOI.B).whileTrue(new TurnToSpeaker(m_robotDrive));
+
+      // Adiciona o comando AlignToAprilTag ao botão X do driver controller
+    new JoystickButton(m_driverController, JoystickOI.X).whileTrue(new AlignToAprilTag(m_robotDrive));
 
 }
 
