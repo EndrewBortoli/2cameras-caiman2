@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -135,10 +136,10 @@ public class RobotContainer {
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerActive).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger"));
   new JoystickButton(m_operatorController, OperatorConstants.kTriggerAmp).whileTrue(new LauncherCmd(launcherSubsystem, "Trigger Amp"));
   new JoystickButton(m_operatorController, OperatorConstants.kHome).whileTrue( Home() );
-  new POVButton(m_operatorController, OperatorConstants.kSubwoofer).whileTrue( Subwoofer());
+  new POVButton(m_operatorController, OperatorConstants.kSubwoofer).whileTrue( SubwooferTest());
   new POVButton(m_operatorController, OperatorConstants.kAmp).whileTrue( Amp() );
   new POVButton(m_operatorController, OperatorConstants.kFloorIntake).whileTrue( floorIntake() );
-  new POVButton(m_operatorController, OperatorConstants.kPodium).whileTrue( podiumLaunching() );
+  new POVButton(m_operatorController, OperatorConstants.kPodium).onTrue( podiumLaunchingTest() );
   new POVButton(m_operatorController, JoystickOI.A).whileTrue( new RunCommand(() -> jointLauncherSubsystem.definePosition(), jointLauncherSubsystem) );
   new JoystickButton(m_operatorController, JoystickOI.LEFT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor(LedSubsystem.RAINBOW)));
   new JoystickButton(m_operatorController, JoystickOI.RIGHT_STICK).whileTrue(new RunCommand(() -> ledSubsystem.setColor(LedSubsystem.GREEN)));
@@ -171,6 +172,15 @@ public class RobotContainer {
       new ElevatorMoveChangeSetpointCmd(PositionConstants.elevatorMovePositionHome),
       new WaitCommand(0.15)
     );
+ }
+
+  private Command SubwooferTest() {
+      return new ParallelCommandGroup(
+      new ChangeSetpointLauncherCmd(-24.380558013916016),
+      new ElevatorAngleChangeSetpointCmd(PositionConstants.elevatorJointPositionSubwooferMore),
+      new ChangeSetpointLauncherCmd(PositionConstants.launcherJointPositionSubWoofer),
+      new ElevatorAngleChangeSetpointCmd(PositionConstants.elevatorJointPositionSubwooferRight)
+      );
  }
 
   private Command Subwoofer() {
@@ -214,6 +224,14 @@ public class RobotContainer {
       new ChangeSetpointLauncherCmd(PositionConstants.launcherJointPositionFloorIntake),
       new WaitCommand(0.25),
       new ElevatorMoveChangeSetpointCmd(PositionConstants.elevatorMovePositionHome)
+    );
+ }
+
+ private Command podiumLaunchingTest() {
+     return new ParallelCommandGroup(
+      new ElevatorAngleChangeSetpointCmd(PositionConstants.elevatorJointPositionPodium),
+      new ChangeSetpointLauncherCmd(PositionConstants.launcherJointPositionPodium),
+      new ElevatorMoveChangeSetpointCmd(PositionConstants.elevatorMovePositionPodium)
     );
  }
 
